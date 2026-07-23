@@ -1,0 +1,40 @@
+-- Task-1: Adding a New Book Record
+INSERT INTO books(isbn, book_title, category, rental_price, status, author, publisher)
+VALUES('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.');
+SELECT * FROM books;
+
+-- Task-2: Edit an Existing Member's Address
+UPDATE members
+SET member_address = '420 Elm St'
+WHERE member_id = 'C102';
+select * from members;
+
+-- Task-3: Deleting a Record from the Issued Status Table 
+DELETE FROM issued_status
+WHERE   issued_id =   'IS121';
+select * from issued_status;
+
+-- Task-4: Finding Books Issued by a Specific Employee
+SELECT * FROM issued_status
+WHERE issued_emp_id = 'E101';
+
+-- Task-5: Finding members who have more than one book
+SELECT
+    issued_member_id,
+    member_name,
+    COUNT(issued_member_id) total_books
+FROM issued_status i
+left join members m
+on i.issued_member_id = m.member_id
+GROUP BY 1
+HAVING COUNT(*) > 1;
+
+-- Task-6 Create a table and store there the books title and how many time they are issued 
+CREATE TABLE book_issued_cnt AS
+SELECT b.isbn, b.book_title, COUNT(ist.issued_id) AS issue_count
+FROM issued_status as ist
+JOIN books as b
+ON ist.issued_book_isbn = b.isbn
+GROUP BY b.isbn, b.book_title;
+
+
