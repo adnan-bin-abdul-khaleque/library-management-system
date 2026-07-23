@@ -1,0 +1,110 @@
+-- Task-13: Find all books that have not been returned.Display: Member Name, Book Title, Issue Date
+SELECT
+    m.member_name,
+    bk.book_title,
+    ist.issued_date,
+    rs.return_date
+FROM issued_status AS ist
+JOIN members AS m
+    ON ist.issued_member_id = m.member_id
+JOIN books AS bk
+    ON ist.issued_book_isbn = bk.isbn
+LEFT JOIN return_status AS rs
+    ON ist.issued_id = rs.issued_id
+WHERE rs.return_date IS NULL
+ORDER BY ist.issued_date ASC;
+
+
+-- Task-14:  update the status column in the books table to 'Yes' for all books that have been returned. Use the return_status and issued_status tables.
+select count(*) from books;
+UPDATE books b
+JOIN issued_status i
+    ON b.isbn = i.issued_book_isbn
+JOIN return_status r
+    ON i.issued_id = r.issued_id
+SET b.status = 'Yes';
+
+
+-- Task-15: Branch Performance Report
+SELECT
+    b.branch_id,
+    COUNT(i.issued_id) AS books_issued,
+    COUNT(r.return_id) AS books_returned,
+    SUM(bk.rental_price) AS total_revenue
+FROM branch b
+JOIN employees e
+    ON b.branch_id = e.branch_id
+JOIN issued_status i
+    ON e.emp_id = i.issued_emp_id
+LEFT JOIN return_status r
+    ON i.issued_id = r.issued_id
+JOIN books bk
+    ON i.issued_book_isbn = bk.isbn
+GROUP BY b.branch_id;
+
+
+-- Task-16: Create a Table of Active Members
+CREATE TABLE active_members AS
+SELECT DISTINCT
+    m.member_id,
+    m.member_name
+FROM members m
+JOIN issued_status i
+    ON m.member_id = i.issued_member_id;
+    
+
+
+-- Task-17: Find Employees with the Most Book Issues Processed
+SELECT
+    e.emp_id,
+    e.emp_name,
+    COUNT(i.issued_id) AS total_books_issued
+FROM employees e
+JOIN issued_status i
+    ON e.emp_id = i.issued_emp_id
+GROUP BY e.emp_id, e.emp_name
+HAVING COUNT(i.issued_id) = (
+    SELECT MAX(book_count)
+    FROM (
+        SELECT COUNT(*) AS book_count
+        FROM issued_status
+        GROUP BY issued_emp_id
+    ) AS counts
+);
+
+
+-- Task-18: Create a stored procedure that issues a book.
+DELIMITER $$
+
+CREATE PROCEDURE issue_book(IN p_isbn VARCHAR(30))
+BEGIN
+    DECLARE book_status VARCHAR(10);
+
+    SELECT status
+    INTO book_status
+    FROM books
+    WHERE isbn = p_isbn;
+
+    IF book_status = 'Yes' THEN
+
+        UPDATE books
+        SET status = 'No'
+        WHERE isbn = p_isbn;
+
+        SELECT 'Book issued successfully.' AS Message;
+
+    ELSE
+
+        SELECT 'Book is not available.' AS Message;
+
+    END IF;
+
+END $$
+
+DELIMITER ;
+
+CALL issue_book('978-0-553-29698-2');
+
+
+
+
