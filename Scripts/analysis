@@ -1,0 +1,51 @@
+# Data Analysis and Findings
+-- Task-7: Find all books by a specific category
+SELECT * FROM books
+WHERE category = 'Horror';
+
+-- Task-8: Total rental income by category
+SELECT 
+    b.category,
+    SUM(b.rental_price) total_rental_price,
+    COUNT(*) total_books
+FROM 
+issued_status as ist
+JOIN
+books as b
+ON b.isbn = ist.issued_book_isbn
+GROUP BY 1;
+
+-- Task-9: Last registered members
+SELECT *
+FROM members
+ORDER BY reg_date DESC
+LIMIT 10;
+
+-- Task-10: Employee list with there branch manager
+SELECT
+    e.emp_id,
+    e.emp_name,
+    e.position,
+    e.salary,
+    b.branch_id,
+    b.branch_address,
+    m.emp_name AS manager_name
+FROM branch b
+JOIN employees e
+    ON b.branch_id = e.branch_id
+JOIN employees m
+    ON b.manager_id = m.emp_id;
+    
+-- Task-11: Expensive books
+SELECT * FROM books
+WHERE rental_price >= 7.00;
+
+-- Task-12: Find which books are not returned yet
+SELECT * FROM issued_status as ist
+LEFT JOIN
+return_status as rs
+ON rs.issued_id = ist.issued_id
+WHERE rs.return_id IS NULL;
+
+
+
